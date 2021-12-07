@@ -22,19 +22,30 @@ app.use((req, res, next) => {
 app.post("/authenticate", (req, res) => {
   const { code } = req.body;
 
-  const data = new FormData();
-  data.append("client_id", process.env.client_id);
-  data.append("client_secret", process.env.client_secret);
-  data.append("code", code);
-  data.append("redirect_uri", process.env.redirect_uri);
-
-  fetch(`https://github.com/login/oauth/access_token`, {
-    method: "POST",
-    body: data,
-  })
+  // const data = new FormData();
+  // data.append("client_id", process.env.client_id);
+  // data.append("client_secret", process.env.client_secret);
+  // data.append("code", code);
+  // data.append("redirect_uri", process.env.redirect_uri);
+  const data = {
+    client_id: process.env.client_id,
+    client_secret: process.env.client_secret,
+    code: code,
+    redirect_uri: process.env.redirect_uri,
+  };
+  fetch(
+    `https://github.com/login/oauth/access_token?client_id=${data.client_id}&client_secret=${data.client_secret}&code=${data.code}&redirect_uri=${data.redirect_uri}`,
+    {
+      method: "POST",
+      // body: data,
+      headers: {
+        accept: "application/json",
+      },
+    }
+  )
     .then((response) => response.text())
     .then((paramsString) => {
-      let params = new URLSearchParams(paramsString);
+      let params = new URLSearchParams(JSON.parse(paramsString));
       const access_token = params.get("access_token");
       return fetch(`https://api.github.com/user`, {
         headers: {
